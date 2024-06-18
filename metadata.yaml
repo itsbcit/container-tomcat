@@ -1,0 +1,10 @@
+---
+image_name: template_test
+registries:
+  - url: bcit.io
+labels:
+  maintainer: "jesse@weisner.ca, chriswood.ca@gmail.com"
+vars:
+  tini_version: '0.19.0'
+  de_version: '1.5'
+  dockerize_version: '0.6.1'
