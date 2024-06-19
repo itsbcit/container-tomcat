@@ -1,8 +1,8 @@
-FROM busybox
+FROM tomcat:<%= image.version -%><%= image.variant.empty? ? "" : "-#{image.variant}" %>
 
 <%= snippet('labels', binding) -%>
 
-<%= snippet('docker-entrypoint', binding) -%>
+<%# snippet('docker-entrypoint', binding) -%>
 
 <%= snippet('dockerize', binding) -%>
 
@@ -10,3 +10,4 @@ FROM busybox
 
 ENTRYPOINT ["/tini", "--", "/docker-entrypoint.sh"]
 CMD [ "init-loop" ]
+
