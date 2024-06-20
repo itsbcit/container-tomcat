@@ -22,7 +22,7 @@ task :test do
       build_tag = image.build_name_tag
       puts "Image: #{build_tag}".pink
 
-      container = `#{build_system.name.downcase} run --mount=type=bind,source=./resources/,destination=/tmp/tomcat/,z -e BASE_URL=file:///tmp/tomcat/catalina_base.tgz -e WAR_URL=https://tomcat.apache.org/tomcat-9.0-doc/appdev/sample/sample.war --health-interval=2s -d #{build_tag} #{image.test_command}`.strip
+      container = `#{build_system.name.downcase} run --mount=type=bind,source=./resources/,destination=/tmp/tomcat/,z -e BASE_URL=file:///tmp/tomcat/catalina_base.tgz -e WAR_URL=file:///tmp/tomcat/ROOT.war --health-interval=2s -d #{build_tag} #{image.test_command}`.strip
 
       # abort if container didn't get created
       unless $?.success?
