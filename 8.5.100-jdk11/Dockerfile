@@ -1,7 +1,7 @@
 FROM tomcat:8.5.100-jdk11
 
 LABEL maintainer="jesse@weisner.ca, github.com/deuterium, github.com/ontkanin"
-LABEL build_id="1718921807"
+LABEL build_id="1718923228"
 
 WORKDIR /
 # Add docker-entrypoint script base
@@ -73,7 +73,7 @@ COPY ../resources/scripts/run.d/*.sh /run.d/
 ## Main script
 COPY ../resources/scripts/run.sh /docker-entrypoint.d/
 
-## App directory, scrits, and permissions
+## App directory, scripts, and permissions
 RUN mkdir   -p /app \
  && chmod 0777 /app \
  && chown  0:0 /app \
