@@ -1,8 +1,11 @@
-FROM tomcat:<%= image.version -%><%= image.variant.empty? ? "" : "-#{image.variant}" %>
+FROM tomcat:<%= image.version %>
 
 <%= snippet('labels', binding) -%>
 
-<%# snippet('docker-entrypoint', binding) -%>
+WORKDIR /
+<%= snippet('docker-entrypoint', binding) -%>
+## run.sh below requires complex test expressions "[[" vs "["
+RUN sed -i 's,^#!/bin/sh,#!/bin/bash,' /docker-entrypoint.sh
 
 <%= snippet('dockerize', binding) -%>
 

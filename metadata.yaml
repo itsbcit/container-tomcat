@@ -9,20 +9,28 @@ vars:
   de_version: '1.5'
   dockerize_version: '0.7.0'
 versions:
-  '8.5.100':
-    variants:
-      jdk8:
-      jdk11:
-      jdk17:
-      jdk21:
-  '9.0.89':
-    variants:
-      jdk8:
-      jdk11:
-      jdk17:
-      jdk21:
-  '11.0.0':
-    variants:
-      jdk11:
-      jdk17:
-      jdk21:
+  '8.5.100-jdk8':
+  '8.5.100-jdk11':
+  '8.5.100-jdk17':
+  '8.5.100-jdk21':
+  '9.0.89-jdk8':
+  '9.0.89-jdk11':
+  '9.0.89-jdk17':
+  '9.0.89-jdk21':
+  '11.0.0-jdk11':
+  '11.0.0-jdk17':
+  '11.0.0-jdk21':
+tags:
+
+## unable to do the below as there is no jdk8 for 11
+## and this in the erb:
+## FROM tomcat:<%= image.version -%><%= image.variant.empty? ? "" : "-#{image.variant}" %>
+# variants:
+#   jdk8:
+#   jdk11:
+#   jdk17:
+#   jdk21:
+# versions:
+#   '8.5.100':
+#   '9.0.89':
+#   '11.0.0':
