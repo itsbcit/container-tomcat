@@ -8,6 +8,65 @@ FROM tomcat:<%= image.version -%><%= image.variant.empty? ? "" : "-#{image.varia
 
 <%= snippet('tini', binding) -%>
 
-ENTRYPOINT ["/tini", "--", "/docker-entrypoint.sh"]
-CMD [ "init-loop" ]
+## Common Environment Variables
+ENV DEBUG 0
+ENV TZ America/Vancouver
 
+## Deployment Environment Variables
+ENV CATALINA_BASE="/app/tomcat"
+ENV CONNECT_TIMEOUT 5
+ENV PROXY=""
+ENV RUN_DOCKERIZE 0
+ENV RUN_POSTDEPLOYMENT 0
+ENV RUN_VANILLA 0
+ENV S3_URL=""
+ENV S3_AK=""
+ENV S3_SK=""
+
+## Set Timezone
+RUN ln -svf "/usr/share/zoneinfo/${TZ}" /etc/localtime \
+ && echo "${TZ}" > /etc/timezone \
+ && chmod 664 /etc/timezone /etc/localtime
+
+## Update, Install, Cleanup
+RUN set -eux \
+ && echo 'APT::Install-Suggests "0";'   >> /etc/apt/apt.conf.d/00-docker \
+ && echo 'APT::Install-Recommends "0";' >> /etc/apt/apt.conf.d/00-docker \
+ ## UPDATE
+ && DEBIAN_FRONTEND=noninteractive apt-get update \
+ ## INSTALL: packages
+ && apt-get install -y --no-install-recommends \
+    ## here goes a list of packages to install
+    file \
+    unzip \
+ ## CLEANUP
+ && apt-get autoremove -yqq --purge \
+    ## here goes a list of packages to purge
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+## Scripts for Configuration and WAR data processing
+COPY ../resources/scripts/run.d/*.sh /run.d/
+
+## Main script
+COPY ../resources/scripts/run.sh /
+
+## App directory, scrits, and permissions
+RUN mkdir   -p /app \
+ && chmod 0777 /app \
+ && chown  0:0 /app \
+ && chmod 0555 /run.sh \
+ && chown  0:0 /run.sh \
+ && chmod 0755 /run.d \
+ && chown  0:0 /run.d \
+ && chmod 0444 /run.d/*.sh \
+ && chown  0:0 /run.d/*.sh
+
+## Set working directory
+WORKDIR /app
+
+## Set entrypoint to manage the whole damn thing
+ENTRYPOINT [ "/run.sh" ]
+
+## Run Tomcat Catalina
+CMD [ "catalina.sh", "run" ]
