@@ -26,11 +26,6 @@ ENV S3_URL=""
 ENV S3_AK=""
 ENV S3_SK=""
 
-## Set Timezone
-RUN ln -svf "/usr/share/zoneinfo/${TZ}" /etc/localtime \
- && echo "${TZ}" > /etc/timezone \
- && chmod 664 /etc/timezone /etc/localtime
-
 ## Update, Install, Cleanup
 RUN set -eux \
  && echo 'APT::Install-Suggests "0";'   >> /etc/apt/apt.conf.d/00-docker \
@@ -52,14 +47,12 @@ RUN set -eux \
 COPY ../resources/scripts/run.d/*.sh /run.d/
 
 ## Main script
-COPY ../resources/scripts/run.sh /
+COPY ../resources/scripts/run.sh /docker-entrypoint.d/
 
 ## App directory, scrits, and permissions
 RUN mkdir   -p /app \
  && chmod 0777 /app \
  && chown  0:0 /app \
- && chmod 0555 /run.sh \
- && chown  0:0 /run.sh \
  && chmod 0755 /run.d \
  && chown  0:0 /run.d \
  && chmod 0444 /run.d/*.sh \
@@ -68,8 +61,8 @@ RUN mkdir   -p /app \
 ## Set working directory
 WORKDIR /app
 
-## Set entrypoint to manage the whole damn thing
-ENTRYPOINT [ "/run.sh" ]
+## Set entrypoint for scripts
+ENTRYPOINT ["/tini", "--", "/docker-entrypoint.sh"]
 
 ## Run Tomcat Catalina
 CMD [ "catalina.sh", "run" ]
