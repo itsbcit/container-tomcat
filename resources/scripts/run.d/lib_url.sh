@@ -53,13 +53,19 @@ getFileFromURL() {
       curl_exit_status=$?
       ;;
     s3://* )
-      local authorization date path signature string_to_sign; 
+      [[ -z $3 ]] && fatal_error "[${FUNCNAME[0]}] missing S3_URL file parameter; aborting!"
+      [[ -z $4 ]] && fatal_error "[${FUNCNAME[0]}] missing S3_AK file parameter; aborting!"
+      [[ -z $5 ]] && fatal_error "[${FUNCNAME[0]}] missing S3_SK file parameter; aborting!"
+      local authorization date path s3_ak s3_sk s3_url signature string_to_sign
+      s3_url="$3"
+      s3_ak="$4"
+      s3_sk="$5"
       date="$( date -R --utc )"
       path="${url:5}"
       printf -v string_to_sign "%s\n\n\n%s\n%s" "GET" "$date" "/$path"
-      signature=$( echo -n "$string_to_sign" | openssl sha1 -binary -hmac "$S3_SK" | openssl base64 )
-      authorization="AWS ${S3_AK}:${signature}"
-      curl "${remote_opts[@]}" -sL -o "$output" -H "Date: ${date}" -H "Authorization: ${authorization}" "$S3_URL/${path}"
+      signature=$( echo -n "$string_to_sign" | openssl sha1 -binary -hmac "$s3_sk" | openssl base64 )
+      authorization="AWS ${s3_ak}:${signature}"
+      curl "${remote_opts[@]}" -sL -o "$output" -H "Date: ${date}" -H "Authorization: ${authorization}" "${s3_url}/${path}"
       curl_exit_status=$?
       ;;
     *)
@@ -153,7 +159,7 @@ mkdir -p "$tmp_base"/{bin,conf,lib,logs,temp,webapps,work}
 info "downloading ${BASE_URL}"
 base_filename=$( basename "$BASE_URL" )
 base_filepath="${download_dir}/${base_filename}"
-getFileFromURL "$BASE_URL" "$base_filepath"
+getFileFromURL "$BASE_URL" "$base_filepath" "$S3_URL" "$S3_AK" "$S3_SK"
 
 ## Validate CATALINA_BASE archive
 archive_content_list=''
@@ -221,9 +227,19 @@ for war in $( env | grep -E '^WAR(_[0-9]+)?_URL=' | sort -n ); do
   [[ "$war_filename" != *.war ]] && war_filename="${war_filename}.war"
   war_filepath="${download_dir}/${war_filename}"
 
+  ## Check if override S3 value exists, otherwise use global S3 value
+  s3_url_name="S3_${war_number}_URL"
+  s3_url="${!s3_url_name:-$S3_URL}"
+
+  s3_ak_name="S3_${war_number}_AK"
+  s3_ak="${!s3_ak_name:-$S3_AK}"
+
+  s3_sk_name="S3_${war_number}_SK"
+  s3_sk="${!s3_sk_name:-$S3_SK}"
+
   ## Download WAR file
   info "downloading ${war_url} as ${war_filename}"
-  getFileFromURL "$war_url" "$war_filepath"
+  getFileFromURL "$war_url" "$war_filepath" "$s3_url" "$s3_ak" "$s3_sk"
   
   ## Verify whether WAR file
   if ! isWARfile "$war_filepath"; then
