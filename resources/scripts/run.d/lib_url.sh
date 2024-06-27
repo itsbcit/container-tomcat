@@ -204,9 +204,12 @@ if [[ "$RUN_DOCKERIZE" -eq 1 ]]; then
   done < <( find "$tmp_base" -type f -name '*.tmpl' -not -path '*/\.git/*' -print0 )
 fi
 
+## CATALINA_BASE archive checksum
+[[ "$SKIP_CHECKSUM" -eq 1 ]] && md5sum='' || md5sum="MD5($( openssl md5 "$base_filepath" | awk '{print $NF}' ))"
+
 ## Deploy CATALINA_BASE files
 if cp -rf "${tmp_base}"/* "${CATALINA_BASE}/" 2>/dev/null; then
-  info "${base_filename} deployed to ${CATALINA_BASE}"
+  info "${base_filename} deployed to ${CATALINA_BASE}" "$md5sum"
   rm -rf "$tmp_base"
   rm -f "$base_filepath"
 else
@@ -251,9 +254,12 @@ for war in $( env | grep -E '^WAR(_[0-9]+)?_URL=' | sort -n ); do
     fatal_error "${war_filename} doesn't exist or not a WAR file; aborting!"
   fi
   
+  ## WAR archive checksum
+  [[ "$SKIP_CHECKSUM" -eq 1 ]] && md5sum='' || md5sum="MD5($( openssl md5 "$war_filepath" | awk '{print $NF}' ))"
+
   ## Deploy WAR file to webapps folder
   if mv -f "$war_filepath" "${CATALINA_BASE}/webapps/" 2>/dev/null; then
-    info "${war_filename} deployed to ${CATALINA_BASE}/webapps/"
+    info "${war_filename} deployed to ${CATALINA_BASE}/webapps/" "$md5sum"
   else
     fatal_error "${war_filename} deployment to ${CATALINA_BASE}/webapps/ failed; aborting!"
   fi

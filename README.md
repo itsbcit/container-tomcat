@@ -96,6 +96,12 @@ Can be overridden for each indexed `WAR_URL` using indexed `S3_SK`.
   - `WAR_0_URL=s3://bucket/path/to/object`
   - `S3_0_SK=a22AB4xxnD3wABQk5KQpZZZ31Qs7wMDb`
 
+### SKIP_CHECKSUM
+
+- **Description**: Skip the MD5 checksum printout of the `BASE_URL` and `WAR_URL` archive files.
+- **Default value**: 0 (disabled)
+- **Example**: `SKIP_CHECKSUM=1`
+
 ### WAR_NAME
 
 - **Description**: Name of the WAR file when deployed to the container. Used when the deployed WAR filename needs to be different from the original WAR filename.

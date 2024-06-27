@@ -1,7 +1,7 @@
 FROM tomcat:9.0.89-jdk8
 
 LABEL maintainer="jesse@weisner.ca, github.com/deuterium, github.com/ontkanin"
-LABEL build_id="1718923228"
+LABEL build_id="1719450762"
 
 WORKDIR /
 # Add docker-entrypoint script base
@@ -49,6 +49,7 @@ ENV RUN_VANILLA 0
 ENV S3_URL=""
 ENV S3_AK=""
 ENV S3_SK=""
+ENV SKIP_CHECKSUM 0
 
 ## Update, Install, Cleanup
 RUN set -eux \
