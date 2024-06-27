@@ -192,6 +192,11 @@ fi
 
 ## Dockerize CATALINA_BASE files
 if [[ "$RUN_DOCKERIZE" -eq 1 ]]; then
+  if [[ -f "${tmp_base}/.DOCKERIZE.env" ]]; then
+    info "loading: ${tmp_base}/.DOCKERIZE.env"
+    . "${tmp_base}/.DOCKERIZE.env"
+  fi
+  info "DOCKERIZE_ENV: ${DOCKERIZE_ENV}"
   while IFS= read -r -d '' tmpl_file; do
     config_file="$( dirname -- "$tmpl_file" )/$( basename -- "$tmpl_file" .tmpl )"
     info "dockerizing: ${tmpl_file} => ${config_file}"
