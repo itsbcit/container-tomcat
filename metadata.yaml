@@ -7,19 +7,28 @@ labels:
 vars:
   tini_version: '0.19.0'
   de_version: '1.5'
-  dockerize_version: '0.7.0'
+  dockerize_version: '0.11.0'
 versions:
+  ## 8.5.x
   '8.5.100-jdk8':
   '8.5.100-jdk11':
   '8.5.100-jdk17':
   '8.5.100-jdk21':
-  '9.0.89-jdk8':
-  '9.0.89-jdk11':
-  '9.0.89-jdk17':
-  '9.0.89-jdk21':
-  '11.0.0-jdk11':
-  '11.0.0-jdk17':
-  '11.0.0-jdk21':
+  ## 9.x
+  '9.0.117-jdk8':
+  '9.0.117-jdk11':
+  '9.0.117-jdk17':
+  '9.0.117-jdk21':
+  '9.0.117-jdk25':
+  ## 10.1.x
+  '10.1.54-jdk11':
+  '10.1.54-jdk17':
+  '10.1.54-jdk21':
+  '10.1.54-jdk25':
+  ## 11.0.x
+  '11.0.21-jdk17':
+  '11.0.21-jdk21':
+  '11.0.21-jdk25':
 tags:
 
 ## unable to do the below as there is no jdk8 for 11
