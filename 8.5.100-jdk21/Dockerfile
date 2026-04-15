@@ -1,7 +1,7 @@
 FROM tomcat:8.5.100-jdk21
 
 LABEL maintainer="jesse@weisner.ca, github.com/deuterium, github.com/ontkanin"
-LABEL build_id="1719450762"
+LABEL build_id="1776288029"
 
 WORKDIR /
 # Add docker-entrypoint script base
@@ -21,7 +21,7 @@ RUN tar zxvf docker-entrypoint.tar.gz && rm -f docker-entrypoint.tar.gz \
 RUN sed -i 's,^#!/bin/sh,#!/bin/bash,' /docker-entrypoint.sh
 
 # Add dockerize
-ADD https://github.com/jwilder/dockerize/releases/download/v0.7.0/dockerize-alpine-linux-amd64-v0.7.0.tar.gz /dockerize.tar.gz
+ADD https://github.com/jwilder/dockerize/releases/download/v0.11.0/dockerize-alpine-linux-amd64-v0.11.0.tar.gz /dockerize.tar.gz
 RUN [ -d /usr/local/bin ] || mkdir -p /usr/local/bin \
  && tar zxf /dockerize.tar.gz -C /usr/local/bin \
  && chown 0:0 /usr/local/bin/dockerize \
@@ -36,20 +36,20 @@ RUN chmod +x /tini \
  && ln -s /tini /sbin/tini 
 
 ## Common Environment Variables
-ENV DEBUG 0
-ENV TZ America/Vancouver
+ENV DEBUG=0
+ENV TZ=America/Vancouver
 
 ## Deployment Environment Variables
 ENV CATALINA_BASE="/app/tomcat"
-ENV CONNECT_TIMEOUT 5
+ENV CONNECT_TIMEOUT=5
 ENV PROXY=""
-ENV RUN_DOCKERIZE 0
-ENV RUN_POSTDEPLOYMENT 0
-ENV RUN_VANILLA 0
+ENV RUN_DOCKERIZE=0
+ENV RUN_POSTDEPLOYMENT=0
+ENV RUN_VANILLA=0
 ENV S3_URL=""
 ENV S3_AK=""
 ENV S3_SK=""
-ENV SKIP_CHECKSUM 0
+ENV SKIP_CHECKSUM=0
 
 ## Update, Install, Cleanup
 RUN set -eux \
