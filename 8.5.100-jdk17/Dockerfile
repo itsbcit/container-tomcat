@@ -1,7 +1,7 @@
 FROM tomcat:8.5.100-jdk17
 
 LABEL maintainer="jesse@weisner.ca, github.com/deuterium, github.com/ontkanin"
-LABEL build_id="1776288029"
+LABEL build_id="1785528618"
 
 WORKDIR /
 # Add docker-entrypoint script base
@@ -21,7 +21,7 @@ RUN tar zxvf docker-entrypoint.tar.gz && rm -f docker-entrypoint.tar.gz \
 RUN sed -i 's,^#!/bin/sh,#!/bin/bash,' /docker-entrypoint.sh
 
 # Add dockerize
-ADD https://github.com/jwilder/dockerize/releases/download/v0.11.0/dockerize-alpine-linux-amd64-v0.11.0.tar.gz /dockerize.tar.gz
+ADD https://github.com/jwilder/dockerize/releases/download/v0.14.0/dockerize-alpine-linux-amd64-v0.14.0.tar.gz /dockerize.tar.gz
 RUN [ -d /usr/local/bin ] || mkdir -p /usr/local/bin \
  && tar zxf /dockerize.tar.gz -C /usr/local/bin \
  && chown 0:0 /usr/local/bin/dockerize \
