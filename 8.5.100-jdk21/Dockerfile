@@ -1,7 +1,7 @@
 FROM tomcat:8.5.100-jdk21
 
 LABEL maintainer="jesse@weisner.ca, github.com/deuterium, github.com/ontkanin"
-LABEL build_id="1785528618"
+LABEL build_id="1787247725"
 
 WORKDIR /
 # Add docker-entrypoint script base
