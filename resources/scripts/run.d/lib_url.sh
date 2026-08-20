@@ -62,11 +62,11 @@ getFileFromURL() {
 
   case "$lowercase_url" in
     file://* )
-      curl -sL -o "$output" "$url"
+      curl -fsSL -o "$output" "$url"
       curl_exit_status=$?
       ;;
     http://* | https://* )
-      curl "${remote_opts[@]}" -sL -o "$output" "$url"
+      curl "${remote_opts[@]}" -fsSL -o "$output" "$url"
       curl_exit_status=$?
       ;;
     s3://* )
@@ -82,7 +82,7 @@ getFileFromURL() {
       printf -v string_to_sign "%s\n\n\n%s\n%s" "GET" "$date" "/$path"
       signature=$( echo -n "$string_to_sign" | openssl sha1 -binary -hmac "$s3_sk" | openssl base64 )
       authorization="AWS ${s3_ak}:${signature}"
-      curl "${remote_opts[@]}" -sL -o "$output" -H "Date: ${date}" -H "Authorization: ${authorization}" "${s3_url}/${path}"
+      curl "${remote_opts[@]}" -fsSL -o "$output" -H "Date: ${date}" -H "Authorization: ${authorization}" "${s3_url}/${path}"
       curl_exit_status=$?
       ;;
     *)
