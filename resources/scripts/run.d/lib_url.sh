@@ -137,6 +137,7 @@ else
   fi
 fi
 
+## S3 Pre-Check
 is_s3=0
 
 if [[ -z "$BASE_URL" ]]; then
@@ -149,6 +150,10 @@ if [[ "$( env | grep -E '^WAR(_[0-9]+)?_URL=' | wc -w )" -eq 0 ]]; then
   fatal_error "WAR_URL is empty or not defined; aborting!"
 else
   env | grep -qE '^WAR(_[0-9]+)?_URL=[sS]3://' && is_s3=1
+fi
+
+if [[ "$( env | grep -E '^FILE(_[0-9]+)?_URL=' | wc -w )" -gt 0 ]]; then
+  env | grep -qE '^FILE(_[0-9]+)?_URL=[sS]3://' && is_s3=1
 fi
 
 ## Check for S3_* settings if s3:// resource
@@ -290,4 +295,42 @@ for war in $( env | grep -E '^WAR(_[0-9]+)?_URL=' | sort -n ); do
   else
     fatal_error "${war_filename} deployment to ${CATALINA_BASE}/webapps/ failed; aborting!"
   fi
+done
+
+## Download Regular File(s)
+for rfile in $( env | grep -E '^FILE(_[0-9]+)?_URL=' | sort -n ); do
+
+  ## Read variable names
+  rfile_url_name=${rfile%%=*}
+  rfile_number=$( echo "$rfile_url_name" | grep -oE '[0-9]+' )
+  [[ -z "$rfile_number" ]] && rfile_name_name='FILE_NAME' || rfile_name_name="FILE_${rfile_number}_NAME"
+
+  ## Extract values from variable names
+  rfile_url="${!rfile_url_name}"
+  rfile_name="${!rfile_name_name}"
+
+  [[ -z "$rfile_url" ]] && fatal_error "${rfile_url_name} is defined but empty; aborting!"
+
+  ## Set FILE output file name
+  rfile_display_url="$( stripURLQueryAndFragment "$rfile_url" )"
+  [[ -n "$rfile_name" ]] && rfile_filename="$rfile_name" || rfile_filename="$( basename -- "$rfile_display_url" )"
+  rfile_filepath="${download_dir}/${rfile_filename}"
+
+  ## Check if override S3 value exists, otherwise use global S3 value
+  s3_url_name="S3_FILE_${rfile_number}_URL"
+  s3_url="${!s3_url_name:-$S3_URL}"
+
+  s3_ak_name="S3_FILE_${rfile_number}_AK"
+  s3_ak="${!s3_ak_name:-$S3_AK}"
+
+  s3_sk_name="S3_FILE_${rfile_number}_SK"
+  s3_sk="${!s3_sk_name:-$S3_SK}"
+
+  ## Download FILE
+  info "downloading ${rfile_display_url} as ${rfile_filename}"
+  getFileFromURL "$rfile_url" "$rfile_filepath" "$s3_url" "$s3_ak" "$s3_sk"
+  
+  ## FILE checksum
+  [[ "$SKIP_CHECKSUM" -eq 1 ]] && md5sum='' || md5sum="MD5($( openssl md5 "$rfile_filepath" | awk '{print $NF}' ))"
+  info "${rfile_filename} stored in ${download_dir}/" "$md5sum"
 done
