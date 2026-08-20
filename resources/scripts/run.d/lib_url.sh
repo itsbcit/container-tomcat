@@ -267,15 +267,18 @@ for war in $( env | grep -E '^WAR(_[0-9]+)?_URL=' | sort -n ); do
   [[ "$war_filename" != *.war ]] && war_filename="${war_filename}.war"
   war_filepath="${download_dir}/${war_filename}"
 
-  ## Check if override S3 value exists, otherwise use global S3 value
-  s3_url_name="S3_${war_number}_URL"
-  s3_url="${!s3_url_name:-$S3_URL}"
+  ## Prefer WAR-specific S3 overrides, then legacy overrides, then global values
+  s3_war_url_name="S3_WAR_${war_number}_URL"
+  s3_legacy_url_name="S3_${war_number}_URL"
+  s3_url="${!s3_war_url_name:-${!s3_legacy_url_name:-$S3_URL}}"
 
-  s3_ak_name="S3_${war_number}_AK"
-  s3_ak="${!s3_ak_name:-$S3_AK}"
+  s3_war_ak_name="S3_WAR_${war_number}_AK"
+  s3_legacy_ak_name="S3_${war_number}_AK"
+  s3_ak="${!s3_war_ak_name:-${!s3_legacy_ak_name:-$S3_AK}}"
 
-  s3_sk_name="S3_${war_number}_SK"
-  s3_sk="${!s3_sk_name:-$S3_SK}"
+  s3_war_sk_name="S3_WAR_${war_number}_SK"
+  s3_legacy_sk_name="S3_${war_number}_SK"
+  s3_sk="${!s3_war_sk_name:-${!s3_legacy_sk_name:-$S3_SK}}"
 
   ## Download WAR file
   info "downloading ${war_display_url} as ${war_filename}"
