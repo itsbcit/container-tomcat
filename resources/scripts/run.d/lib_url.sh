@@ -42,6 +42,14 @@ fatal_error() {
   log "ERROR" "$@" >&2
   exit 2
 }
+
+#######################################
+stripURLQueryAndFragment() {
+#######################################
+
+  printf '%s\n' "${1%%[?#]*}"
+}
+
 #######################################
 getFileFromURL() {
 #######################################
@@ -90,7 +98,7 @@ getFileFromURL() {
       ;;
   esac
 
-  [[ curl_exit_status -ne 0 ]] && fatal_error "[${FUNCNAME[0]}] failed to reach $url; aborting!"
+  [[ curl_exit_status -ne 0 ]] && fatal_error "[${FUNCNAME[0]}] failed to reach $( stripURLQueryAndFragment "$url" ); aborting!"
 }
 
 #######################################
@@ -173,8 +181,9 @@ mkdir -p "$tmp_base"/{bin,conf,lib,logs,temp,webapps,work}
 [[ -n "$PROXY" ]] && info "using PROXY ${PROXY} for remote connections"
 
 ## Download CATALINA_BASE archive
-info "downloading ${BASE_URL}"
-base_filename=$( basename "$BASE_URL" )
+base_display_url="$( stripURLQueryAndFragment "$BASE_URL" )"
+info "downloading ${base_display_url}"
+base_filename="$( basename -- "$base_display_url" )"
 base_filepath="${download_dir}/${base_filename}"
 getFileFromURL "$BASE_URL" "$base_filepath" "$S3_URL" "$S3_AK" "$S3_SK"
 
@@ -248,7 +257,8 @@ for war in $( env | grep -E '^WAR(_[0-9]+)?_URL=' | sort -n ); do
   [[ -z "$war_url" ]] && fatal_error "${war_url_name} is defined but empty; aborting!"
 
   ## Set WAR output file name
-  [[ -n "$war_name" ]] && war_filename="$war_name" || war_filename="$( basename "$war_url" )"
+  war_display_url="$( stripURLQueryAndFragment "$war_url" )"
+  [[ -n "$war_name" ]] && war_filename="$war_name" || war_filename="$( basename -- "$war_display_url" )"
   [[ "$war_filename" != *.war ]] && war_filename="${war_filename}.war"
   war_filepath="${download_dir}/${war_filename}"
 
@@ -263,7 +273,7 @@ for war in $( env | grep -E '^WAR(_[0-9]+)?_URL=' | sort -n ); do
   s3_sk="${!s3_sk_name:-$S3_SK}"
 
   ## Download WAR file
-  info "downloading ${war_url} as ${war_filename}"
+  info "downloading ${war_display_url} as ${war_filename}"
   getFileFromURL "$war_url" "$war_filepath" "$s3_url" "$s3_ak" "$s3_sk"
   
   ## Verify whether WAR file
