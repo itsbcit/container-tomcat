@@ -2,7 +2,7 @@
 
 ## Extended version of the official Tomcat image
 
-This image extends the official Tomcat image by allowing it to pull configuration and WAR resources from local and remote sources.
+This image extends the official Tomcat image by allowing it to pull configuration, WAR, and generic file resources from local and remote sources.
 
 ## Environmental Variables
 
@@ -32,6 +32,28 @@ This image extends the official Tomcat image by allowing it to pull configuratio
 - **Description**: Enable or disable container debug output.
 - **Default value**: 0 (disabled)
 - **Example**: `DEBUG=1`
+
+### FILE_NAME
+
+- **Description**: Name assigned to an optional generic file downloaded into `/app/.download`. If omitted, the filename is derived from the path component of `FILE_URL` without its query string or fragment.
+- **Default value**: Filename from `FILE_URL`
+- **Example**: `FILE_NAME=application.properties`
+
+### FILE_URL (optional)
+
+- **Description**: Location of a generic file to download into `/app/.download`. Supported URL schemes: `file`, `http`, `https`, `s3`.
+- **Default value**: None
+- **Examples**:
+  - `FILE_URL=file:///path/to/file/in/container`
+  - `FILE_URL=https://remote-web-server/path/to/file`
+  - `FILE_URL=s3://bucket/path/to/object`
+
+Multiple files can be downloaded simultaneously. Each indexed `FILE_URL` refers to the corresponding indexed `FILE_NAME`.
+
+- **Example**:
+  - `FILE_0_URL=s3://bucket/path/to/application.properties`
+  - `FILE_0_NAME=application.properties`
+  - `FILE_1_URL=https://remote-web-server/path/to/extra-library.jar`
 
 ### PROXY
 
@@ -63,25 +85,11 @@ This image extends the official Tomcat image by allowing it to pull configuratio
 - **Default value**: None
 - **Example**: `S3_URL=https://minio-server`
 
-Can be overridden for each indexed `WAR_URL` using indexed `S3_URL`.
-
-- **Example**:
-
-  - `WAR_0_URL=s3://bucket/path/to/object`
-  - `S3_0_URL=https://another-minio-server`
-
 ### S3_AK (mandatory for s3://)
 
 - **Description**: Global S3 Access Key.
 - **Default value**: None
 - **Example**: `S3_AK=cAoYZ6O2LCzArSKS`
-
-Can be overridden for each indexed `WAR_URL` using indexed `S3_AK`.
-
-- **Example**:
-
-  - `WAR_0_URL=s3://bucket/path/to/object`
-  - `S3_0_AK=A1ozB7O3bAaZpVZ1`
 
 ### S3_SK (mandatory for s3://)
 
@@ -89,16 +97,33 @@ Can be overridden for each indexed `WAR_URL` using indexed `S3_AK`.
 - **Default value**: None
 - **Example**: `S3_SK=hOqIM1zsMdpRflkQ8kqpYRW05KS3PnPm`
 
-Can be overridden for each indexed `WAR_URL` using indexed `S3_SK`.
+### Indexed S3 overrides
+
+Indexed WAR and FILE resources can override the global S3 server and credentials independently:
+
+| Resource | Server URL | Access key | Secret key |
+| --- | --- | --- | --- |
+| `WAR_<index>_URL` | `S3_WAR_<index>_URL` | `S3_WAR_<index>_AK` | `S3_WAR_<index>_SK` |
+| `FILE_<index>_URL` | `S3_FILE_<index>_URL` | `S3_FILE_<index>_AK` | `S3_FILE_<index>_SK` |
+
+The global `S3_URL`, `S3_AK`, and `S3_SK` variables remain mandatory whenever any `s3://` resource is configured. Indexed overrides replace their respective global values for the matching resource; unindexed WAR and FILE resources use the global values.
+
+For backward compatibility, the legacy `S3_<index>_URL`, `S3_<index>_AK`, and `S3_<index>_SK` WAR overrides remain supported but are deprecated. WAR-specific values take precedence over legacy values, which take precedence over the global values. FILE-specific values take precedence over the global values.
 
 - **Example**:
 
   - `WAR_0_URL=s3://bucket/path/to/object`
-  - `S3_0_SK=a22AB4xxnD3wABQk5KQpZZZ31Qs7wMDb`
+  - `S3_WAR_0_URL=https://war-minio-server`
+  - `S3_WAR_0_AK=A1ozB7O3bAaZpVZ1`
+  - `S3_WAR_0_SK=a22AB4xxnD3wABQk5KQpZZZ31Qs7wMDb`
+  - `FILE_1_URL=s3://bucket/path/to/application.properties`
+  - `S3_FILE_1_URL=https://file-minio-server`
+  - `S3_FILE_1_AK=B2paC8P4cBbAqWa2`
+  - `S3_FILE_1_SK=b33BC5yyO4eBCQl6LRqAaa42Rt8xNEc`
 
 ### SKIP_CHECKSUM
 
-- **Description**: Skip the MD5 checksum printout of the `BASE_URL` and `WAR_URL` archive files.
+- **Description**: Skip the MD5 checksum printout of the `BASE_URL`, `WAR_URL`, and `FILE_URL` files.
 - **Default value**: 0 (disabled)
 - **Example**: `SKIP_CHECKSUM=1`
 
@@ -198,6 +223,9 @@ services:
       - WAR_0_URL=https://remote-web-server/path/to/ROOT.war
       - WAR_1_NAME=SampleWebApp.war
       - WAR_1_URL=s3://bucket/path/to/SampleWebApp_v15.5.32.war
+      - S3_WAR_1_URL=https://another-minio-server
+      - FILE_0_NAME=application.properties
+      - FILE_0_URL=https://remote-web-server/path/to/application.properties
     ports:
       - 8080:8080
 ```
